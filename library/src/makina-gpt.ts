@@ -199,6 +199,29 @@ export namespace MakinaGPT {
                     required: ['type', 'level']
                 }
             }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'getDaniVersions',
+                description: '단위도장 버전들을 가져옴'
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'getDani',
+                description: '특정 버전의 단위도장 데이터를 가져옴',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        version: {
+                            type: 'string'
+                        }
+                    },
+                    required: ['version']
+                }
+            }
         }
     ];
 
@@ -238,6 +261,24 @@ export namespace MakinaGPT {
             catch(err){
                 return 'null';
             }
+        },
+        async getDaniVersions(){
+            try{
+                const response = await wiki.daniVersions();
+                return JSON.stringify(response);
+            }
+            catch(err){
+                return 'null';
+            }
+        },
+        async getDani({version}: MakinaGPT.Tools.GetDaniParam){
+            try{
+                const response = await wiki.dani(version);
+                return JSON.stringify(response);
+            }
+            catch(err){
+                return 'null';
+            }
         }
     }
 
@@ -265,6 +306,9 @@ export namespace MakinaGPT {
         export type GetDiffchartParam = {
             type: 'clear' | 'fc' | 'dfc',
             level: number
+        }
+        export type GetDaniParam = {
+            version: string
         }
     }
 }

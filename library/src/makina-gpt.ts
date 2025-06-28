@@ -2,7 +2,6 @@ import { TaikowikiApi } from '@taiko-wiki/taikowiki-api';
 export const GENRE = ["pops", "anime", "kids", "game", "variety", "namco", "vocaloid", "classic"] as const;
 type Genre = typeof GENRE[number];
 import OpenAI from 'openai';
-// import { developerPrompts } from './developer prompts/developerPrompts.js';
 
 const wiki = new TaikowikiApi();
 

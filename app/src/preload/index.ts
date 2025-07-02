@@ -4,15 +4,24 @@ import { IPC } from '../types/ipc.js'
 
 // Custom APIs for renderer
 const api: IPC.FrontAPI = {
+  ready() {
+    return electronAPI.ipcRenderer.sendSync('ready');
+  },
   setApiKey(apiKey: string): Promise<boolean> {
     return electronAPI.ipcRenderer.invoke('setApiKey', apiKey);
   },
-  setBaseURL(baseURL){
+  setBaseURL(baseURL) {
     return electronAPI.ipcRenderer.invoke('setBaseURL', baseURL);
   },
-  sendMessage(data){
+  sendMessage(data) {
     return electronAPI.ipcRenderer.invoke('sendMessage', data);
-  }
+  },
+  getAllRooms() {
+    return electronAPI.ipcRenderer.invoke('getAllRooms');
+  },
+  getMessages(roomId) {
+    return electronAPI.ipcRenderer.invoke('getMessages', roomId);
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -2,6 +2,7 @@ import sqlite3 from 'sqlite3';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import OpenAI from 'openai';
+import { MessageData, Room } from '../types/chat.js';
 
 const { Database } = sqlite3;
 
@@ -47,7 +48,7 @@ const DB = {
         setting: {
             async get(key: string) {
                 const result = await DB.get("SELECT value FROM setting WHERE key=?", [key]);
-                if(!result){
+                if (!result) {
                     return null;
                 }
                 return Object.values(result)[0] as string;
@@ -68,23 +69,26 @@ const DB = {
             }
         },
         msg: {
-            async insertMessage(roomId: string, message: OpenAI.ChatCompletionMessageParam, time: Date){
+            async insertMessage(roomId: string, message: OpenAI.ChatCompletionMessageParam, time: Date) {
                 await DB.run("INSERT INTO message (roomId, message, time) VALUES (?, ?, ?)", [roomId, JSON.stringify(message), time.getTime()]);
             },
-            async getRecentMessages(roomId: string){
-                type Message = {
-                    roomId: string,
-                    message: OpenAI.ChatCompletionMessageParam,
-                    time: Date
-                }
-                const result = await DB.all("SELECT * FROM message WHERE roomId=? ORDER BY id DESC LIMIT 10", [roomId]) as any[];
+            async getRecentMessages(roomId: string, limit: number = 10, offset: number = 0) {
+                const result = await DB.all("SELECT * FROM message WHERE roomId=? ORDER BY id DESC LIMIT ? OFFSET ? ", [roomId, limit, offset]) as any[];
                 result.forEach((v: any) => {
                     v.message = JSON.parse(v.message);
                     v.time = new Date(v.time);
                 });
-                return result as Message[];
+                return result as (MessageData & {roomId: string})[];
             },
-            async check(){
+            async getMessages(roomId: string) {
+                const result = await DB.all("SELECT * FROM message WHERE roomId=? ORDER BY id ASC", [roomId]) as any[];
+                result.forEach((v: any) => {
+                    v.message = JSON.parse(v.message);
+                    v.time = new Date(v.time);
+                });
+                return result as MessageData[];
+            },
+            async check() {
                 const result = await DB.get("SELECT name FROM sqlite_master WHERE type='table' AND name='message'");
                 return Boolean(result);
             },
@@ -98,14 +102,25 @@ const DB = {
             }
         },
         room: {
-            async checkRoom(roomId: string){
+            async checkRoom(roomId: string) {
                 const result = await DB.get("SELECT roomId FROM room WHERE roomId=?", [roomId]);
                 return Boolean(result);
             },
-            async createRoom(roomId: string, subject: string){
+            async createRoom(roomId: string, subject: string) {
                 await DB.run("INSERT INTO room (roomId, subject) VALUES (?, ?)", [roomId, subject]);
             },
-            async check(){
+            async getRoom(roomId: string) {
+                const result = await DB.get("SELECT roomId, subject FROM room WHERE roomId=?", [roomId]);
+                if (result) {
+                    return result as Room;
+                }
+                return null;
+            },
+            async getAllRooms() {
+                const result = await DB.all("SELECT roomId, subject FROM room");
+                return result ?? [] as Room[];
+            },
+            async check() {
                 const result = await DB.get("SELECT name FROM sqlite_master WHERE type='table' AND name='room'");
                 return Boolean(result);
             },
@@ -120,13 +135,13 @@ const DB = {
     }
 };
 
-if(!(await DB.func.setting.check())){
+if (!(await DB.func.setting.check())) {
     await DB.func.setting.create();
 }
-if(!(await DB.func.msg.check())){
+if (!(await DB.func.msg.check())) {
     await DB.func.msg.create();
 }
-if(!(await DB.func.room.check())){
+if (!(await DB.func.room.check())) {
     await DB.func.room.create();
 }
 

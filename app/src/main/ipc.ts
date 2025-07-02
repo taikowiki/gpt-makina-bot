@@ -1,14 +1,18 @@
-import type { IpcMain } from "electron";
+import type { BrowserWindow, IpcMain } from "electron";
 import { DB } from "./db.js";
 import { MakinaGPT } from '@taiko-wiki/manika-bot-gpt';
 import { normalPrompt, darkPrompt } from '@taiko-wiki/manika-bot-gpt/devPrompt';
 import type { IPC } from '../types/ipc.js';
-import { ChatCompletionMessageParam } from "openai/resources";
 
-const makina = await createMakinaInstance();
-const messageInsertManager = createMessageInsertManager();
+let { makina, isApiKeySet } = await createMakinaInstance();
 
-export function enableIpc(ipcMain: IpcMain) {
+export function enableIpc(ipcMain: IpcMain, mainWindow: BrowserWindow) {
+    ipcMain.on('ready', (event) => {
+        event.returnValue = {
+            isApiKeySet
+        }
+    })
+
     ipcMain.handle('setApiKey', async (_, apiKey: IPC.ToBack['setApiKey']) => {
         try {
             await DB.func.setting.set('apiKey', apiKey);
@@ -31,43 +35,66 @@ export function enableIpc(ipcMain: IpcMain) {
         }
     })
 
-    ipcMain.handle("sendMessage", async (_, { roomId, message, type }: IPC.ToBack['sendMessage']): Promise<[Error | null | any, string | null]> => {
+    ipcMain.handle("sendMessage", async (_, { roomId, message, mode }: IPC.ToBack['sendMessage']): Promise<[Error | null | any, string | null]> => {
         try {
+            const requestTime = new Date();
             if (!(await DB.func.room.checkRoom(roomId))) {
-                const subject = await makina[type].request([
-                    { role: 'developer', content: '유저가 주는 메시지로 시작하는 대화의 주제를 파악하여 간결하게 요약하라.' },
+                const subject = await makina[mode].request([
+                    { role: 'developer', content: '유저가 주는 메시지로 시작하는 대화의 주제를 파악하여 간결하게 요약하라. 명사형으로 끝내라.' },
                     { role: 'user', content: message }
                 ]).then((res) => res.choices?.[0]?.message?.content ?? '제목 없음');
                 await DB.func.room.createRoom(roomId, subject);
+                mainWindow.webContents.send("setRoomSubject", { roomId, subject } as IPC.ToFront['setRoomSubject']);
             }
 
             const recentMessages = await DB.func.msg.getRecentMessages(roomId);
-            const response = await makina[type].run(
+            const response = await makina[mode].run(
                 { role: 'user', content: message },
-                recentMessages.map(v => v.message)
-            )
-
-            response.progressMessages.forEach((message) => {
-                messageInsertManager.push({
-                    roomId,
-                    message,
-                    time: new Date()
-                });
-            });
-            if (response.responseMessage?.message) {
-                messageInsertManager.push({
-                    roomId, 
-                    message: response.responseMessage.message, 
-                    time: new Date()
+                recentMessages.map(v => ({
+                    role: v.message.role,
+                    content: v.message.content ?? ''
                 })
+                ));
+
+            if (response.responseMessage?.message) {
+                await DB.func.msg.insertMessage(
+                    roomId,
+                    { role: 'user', content: message },
+                    requestTime
+                );
+                await DB.func.msg.insertMessage(
+                    roomId,
+                    response.responseMessage.message,
+                    new Date()
+                );
                 return [null, response.responseMessage.message.content];
             }
+            else {
+                await DB.func.msg.insertMessage(
+                    roomId,
+                    { role: 'user', content: message },
+                    requestTime
+                );
+                await DB.func.msg.insertMessage(
+                    roomId,
+                    { role: 'assistant', content: null },
+                    new Date()
+                );
 
-            return [null, null];
+                return [null, null];
+            }
         }
         catch (err) {
             return [err, null];
         }
+    });
+
+    ipcMain.handle('getAllRooms', async () => {
+        return await DB.func.room.getAllRooms();
+    });
+
+    ipcMain.handle('getMessages', async (_, roomId: string) => {
+        return await DB.func.msg.getMessages(roomId);
     })
 }
 
@@ -81,13 +108,21 @@ async function createMakinaInstance() {
             key: '',
             developerMessages: [darkPrompt]
         }),
+        custom: new MakinaGPT({
+            key: ''
+        }),
         setApiKey(apiKey: string) {
             makina.normal.client.apiKey = apiKey;
             makina.dark.client.apiKey = apiKey;
+            makina.custom.client.apiKey = apiKey;
+            if (apiKey) {
+                isApiKeySet = true;
+            }
         },
         setBaseURL(baseURL: string) {
             makina.normal.client.baseURL = baseURL;
             makina.dark.client.baseURL = baseURL;
+            makina.custom.client.baseURL = baseURL;
         }
     }
 
@@ -101,31 +136,8 @@ async function createMakinaInstance() {
         makina.setBaseURL(baseURL);
     };
 
-    return makina;
-}
-
-function createMessageInsertManager() {
-    const MessageInsertManager = class {
-        working: boolean = false;
-        queue: { roomId: string, message: ChatCompletionMessageParam, time: Date }[] = [];
-
-        push(data: { roomId: string, message: ChatCompletionMessageParam, time: Date }) {
-            this.queue.push(data);
-            this.run();
-        }
-        async run() {
-            if (this.working) return;
-            if (this.queue.length <= 0) return;
-            this.working = true;
-            while (true) {
-                const data = this.queue.shift();
-                if (!data) break;
-                const { roomId, message, time } = data;
-                await DB.func.msg.insertMessage(roomId, message, time);
-            }
-            this.working = false;
-        }
+    return {
+        makina,
+        isApiKeySet: apiKey ? true : false
     };
-    return new MessageInsertManager();
 }
-

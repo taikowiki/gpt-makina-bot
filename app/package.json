@@ -5,6 +5,7 @@
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://electron-vite.org",
+  "type": "module",
   "scripts": {
     "format": "prettier --plugin prettier-plugin-svelte --write .",
     "lint": "eslint --cache .",
@@ -23,15 +24,17 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
-    "@taiko-wiki/manika-bot-gpt": "^0.0.4",
-    "electron-updater": "^6.3.9"
+    "@taiko-wiki/manika-bot-gpt": "^0.0.11",
+    "electron-updater": "^6.3.9",
+    "openai": "^5.8.2",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "@types/node": "^22.14.1",
+    "@types/node": "^22.15.34",
     "electron": "^35.1.5",
     "electron-builder": "^25.1.8",
     "electron-vite": "^3.1.0",

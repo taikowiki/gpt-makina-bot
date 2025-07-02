@@ -1,8 +1,19 @@
 import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { IPC } from '../types/ipc.js'
 
 // Custom APIs for renderer
-const api = {}
+const api: IPC.FrontAPI = {
+  setApiKey(apiKey: string): Promise<boolean> {
+    return electronAPI.ipcRenderer.invoke('setApiKey', apiKey);
+  },
+  setBaseURL(baseURL){
+    return electronAPI.ipcRenderer.invoke('setBaseURL', baseURL);
+  },
+  sendMessage(data){
+    return electronAPI.ipcRenderer.invoke('sendMessage', data);
+  }
+};
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise

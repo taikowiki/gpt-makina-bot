@@ -1,0 +1,133 @@
+import sqlite3 from 'sqlite3';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
+import OpenAI from 'openai';
+
+const { Database } = sqlite3;
+
+const dbDirPath = path.join(import.meta.dirname, 'db');
+const dbPath = path.join(dbDirPath, 'main.db');
+if (!fs.existsSync(dbDirPath)) {
+    fs.mkdirSync(dbDirPath, { recursive: true });
+}
+
+const DB = {
+    db: new Database(dbPath),
+    run(sql: string, params?: any[]) {
+        return new Promise((res, rej) => {
+            DB.db.run(sql, params ?? [], function (err) {
+                if (err) {
+                    return rej(err);
+                }
+                return res(this);
+            })
+        })
+    },
+    all(sql: string, params?: any[]) {
+        return new Promise((res, rej) => {
+            this.db.all(sql, params, (err, rows) => {
+                if (err) {
+                    return rej(err);
+                }
+                return res(rows);
+            })
+        })
+    },
+    get(sql: string, params?: any[]) {
+        return new Promise((res, rej) => {
+            this.db.get(sql, params, (err, rows) => {
+                if (err) {
+                    return rej(err);
+                }
+                return res(rows);
+            })
+        })
+    },
+    func: {
+        setting: {
+            async get(key: string) {
+                const result = await DB.get("SELECT value FROM setting WHERE key=?", [key]);
+                if(!result){
+                    return null;
+                }
+                return Object.values(result)[0] as string;
+            },
+            async set(key: string, value: string) {
+                await DB.run("INSERT OR REPLACE INTO setting (key, value) VALUES (?, ?)", [key, value]);
+            },
+            async check() {
+                const result = await DB.get("SELECT name FROM sqlite_master WHERE type='table' AND name='setting'");
+                return Boolean(result);
+            },
+            async create() {
+                await DB.run(`CREATE TABLE "setting" (
+                    id INTEGER PRIMARY KEY,
+                    "key"	TEXT NOT NULL UNIQUE,
+                    "value"	TEXT DEFAULT NULL
+                );`)
+            }
+        },
+        msg: {
+            async insertMessage(roomId: string, message: OpenAI.ChatCompletionMessageParam, time: Date){
+                await DB.run("INSERT INTO message (roomId, message, time) VALUES (?, ?, ?)", [roomId, JSON.stringify(message), time.getTime()]);
+            },
+            async getRecentMessages(roomId: string){
+                type Message = {
+                    roomId: string,
+                    message: OpenAI.ChatCompletionMessageParam,
+                    time: Date
+                }
+                const result = await DB.all("SELECT * FROM message WHERE roomId=? ORDER BY id DESC LIMIT 10", [roomId]) as any[];
+                result.forEach((v: any) => {
+                    v.message = JSON.parse(v.message);
+                    v.time = new Date(v.time);
+                });
+                return result as Message[];
+            },
+            async check(){
+                const result = await DB.get("SELECT name FROM sqlite_master WHERE type='table' AND name='message'");
+                return Boolean(result);
+            },
+            async create() {
+                await DB.run(`CREATE TABLE "message" (
+                    id INTEGER PRIMARY KEY,
+                    "roomId"	TEXT NOT NULL,
+                    "message"	TEXT NOT NULL,
+                    "time"	INTEGER NOT NULL
+                );`)
+            }
+        },
+        room: {
+            async checkRoom(roomId: string){
+                const result = await DB.get("SELECT roomId FROM room WHERE roomId=?", [roomId]);
+                return Boolean(result);
+            },
+            async createRoom(roomId: string, subject: string){
+                await DB.run("INSERT INTO room (roomId, subject) VALUES (?, ?)", [roomId, subject]);
+            },
+            async check(){
+                const result = await DB.get("SELECT name FROM sqlite_master WHERE type='table' AND name='room'");
+                return Boolean(result);
+            },
+            async create() {
+                await DB.run(`CREATE TABLE "room" (
+                    id INTEGER PRIMARY KEY,
+                    "roomId"	TEXT NOT NULL UNIQUE,
+                    "subject"	TEXT NOT NULL
+                );`)
+            }
+        }
+    }
+};
+
+if(!(await DB.func.setting.check())){
+    await DB.func.setting.create();
+}
+if(!(await DB.func.msg.check())){
+    await DB.func.msg.create();
+}
+if(!(await DB.func.room.check())){
+    await DB.func.room.create();
+}
+
+export { DB };

@@ -24,37 +24,45 @@ export class MakinaGPT {
             })
         }
 
-        if(option.developerMessages){
+        if (option.developerMessages) {
             this.developerMessages = option.developerMessages;
         }
     }
 
     async request(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]) {
-        return await this.client.chat.completions.create({
-            model: 'gpt-4o',
-            messages: [
-                ...this.developerMessages.map((e) => ({
-                    role: 'developer' as const,
-                    content: e
-                })),
-                ...messages
-            ],
-            tools: MakinaGPT.tools
-        })
+        try {
+            return await this.client.chat.completions.create({
+                model: 'gpt-4o',
+                messages: [
+                    ...this.developerMessages.map((e) => ({
+                        role: 'developer' as const,
+                        content: e
+                    })),
+                    ...messages
+                ],
+                tools: MakinaGPT.tools
+            })
+        }
+        catch (err) {
+            throw err;
+        }
     }
 
     async run(message: OpenAI.Chat.Completions.ChatCompletionMessageParam, formerMessages?: OpenAI.Chat.Completions.ChatCompletionMessageParam[]) {
         if (!formerMessages) {
             formerMessages = [];
         }
-        formerMessages.push(message);
+        
+        const progressMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [];
+        progressMessages.push(message);
+
         while (true) {
             try {
-                const response = await this.request([...formerMessages]);
+                const response = await this.request([...formerMessages, ...progressMessages]);
                 if (!response.choices?.[0]) {
                     return {
                         responseMessage: null,
-                        formerMessages
+                        progressMessages
                     }
                 }
 
@@ -63,7 +71,7 @@ export class MakinaGPT {
                 if (responseMessage.finish_reason !== "tool_calls") {
                     return {
                         responseMessage,
-                        formerMessages
+                        progressMessages
                     }
                 }
 
@@ -71,12 +79,12 @@ export class MakinaGPT {
                 if (!toolCalls) {
                     return {
                         responseMessage: null,
-                        formerMessages
+                        progressMessages
                     }
                 }
 
                 const toolResults = await this.handleToolCalls(toolCalls);
-                formerMessages.push(responseMessage.message, ...toolResults);
+                progressMessages.push(responseMessage.message, ...toolResults);
             }
             catch (err) {
                 throw err;
@@ -252,30 +260,30 @@ export namespace MakinaGPT {
                 return 'null';
             }
         },
-        async getDiffchart(param: MakinaGPT.Tools.GetDiffchartParam){
-            try{
+        async getDiffchart(param: MakinaGPT.Tools.GetDiffchartParam) {
+            try {
                 const response = await wiki.diffchart(param.type, param.level);
                 return JSON.stringify(response);
             }
-            catch(err){
+            catch (err) {
                 return 'null';
             }
         },
-        async getDaniVersions(){
-            try{
+        async getDaniVersions() {
+            try {
                 const response = await wiki.daniVersions();
                 return JSON.stringify(response);
             }
-            catch(err){
+            catch (err) {
                 return 'null';
             }
         },
-        async getDani({version}: MakinaGPT.Tools.GetDaniParam){
-            try{
+        async getDani({ version }: MakinaGPT.Tools.GetDaniParam) {
+            try {
                 const response = await wiki.dani(version);
                 return JSON.stringify(response);
             }
-            catch(err){
+            catch (err) {
                 return 'null';
             }
         }

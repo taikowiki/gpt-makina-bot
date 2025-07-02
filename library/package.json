@@ -1,6 +1,6 @@
 {
   "name": "@taiko-wiki/manika-bot-gpt",
-  "version": "0.0.5",
+  "version": "0.0.11",
   "description": "Makina bot using GPT for Taiko no Tatsujin",
   "license": "MIT",
   "author": "hotsixman",
@@ -12,8 +12,10 @@
       "import": "./esm/index.js",
       "require": "./cjs/index.js"
     },
-    "./devprompt/normal.md": "./src/devPrompt/normal.md",
-    "./devprompt/dark.md": "./src/devPrompt/dark.md"
+    "./devPrompt": {
+      "import": "./esm/devPrompt/devPrompt.js",
+      "require": "./cjs/devPrompt/devPrompt.js"
+    } 
   },
   "scripts": {
     "build": "npm run build:cjs & npm run build:esm",

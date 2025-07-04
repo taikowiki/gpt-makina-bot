@@ -150,7 +150,7 @@
         }
 
         & > div{
-            transform: translateY(1px);
+            transform: translateY(-1px);
         }
     }
 </style>

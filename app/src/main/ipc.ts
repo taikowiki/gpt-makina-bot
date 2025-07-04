@@ -4,7 +4,8 @@ import { MakinaGPT } from '@taiko-wiki/manika-bot-gpt';
 import { normalPrompt, darkPrompt } from '@taiko-wiki/manika-bot-gpt/devPrompt';
 import type { IPC } from '../types/ipc.js';
 
-let { makina, isApiKeySet } = await createMakinaInstance();
+let isApiKeySet = false;
+let makina = await createMakinaInstance();
 
 export function enableIpc(ipcMain: IpcMain, mainWindow: BrowserWindow) {
     ipcMain.on('ready', (event) => {
@@ -59,26 +60,38 @@ export function enableIpc(ipcMain: IpcMain, mainWindow: BrowserWindow) {
             if (response.responseMessage?.message) {
                 await DB.func.msg.insertMessage(
                     roomId,
-                    { role: 'user', content: message },
-                    requestTime
+                    {
+                        message: { role: 'user', content: message },
+                        time: requestTime,
+                        mode
+                    }
                 );
                 await DB.func.msg.insertMessage(
                     roomId,
-                    response.responseMessage.message,
-                    new Date()
+                    {
+                        message: response.responseMessage.message,
+                        time: new Date(),
+                        mode
+                    }
                 );
                 return [null, response.responseMessage.message.content];
             }
             else {
                 await DB.func.msg.insertMessage(
                     roomId,
-                    { role: 'user', content: message },
-                    requestTime
+                    {
+                        message: { role: 'user', content: message },
+                        time: requestTime,
+                        mode
+                    }
                 );
                 await DB.func.msg.insertMessage(
                     roomId,
-                    { role: 'assistant', content: null },
-                    new Date()
+                    {
+                        message: { role: 'assistant', content: null },
+                        time: new Date(),
+                        mode
+                    }
                 );
 
                 return [null, null];
@@ -136,8 +149,5 @@ async function createMakinaInstance() {
         makina.setBaseURL(baseURL);
     };
 
-    return {
-        makina,
-        isApiKeySet: apiKey ? true : false
-    };
+    return makina;
 }

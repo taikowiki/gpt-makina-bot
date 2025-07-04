@@ -8,5 +8,6 @@ export type MessageData = {
         role: 'user' | 'assistant',
         content: string | null
     },
-    time: Date
+    time: Date,
+    mode: 'normal' | 'dark' | 'custom'
 }

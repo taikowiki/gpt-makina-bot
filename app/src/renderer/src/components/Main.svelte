@@ -5,6 +5,7 @@
     import { roomManager } from '../module/roomManager.svelte'
     import { settingManager } from '../module/settingManager.svelte'
     import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
+    import MessageLog from './main/MessageLog.svelte'
 
     let message = $state('')
     let messageLog = $state<
@@ -39,11 +40,7 @@
     >
         보내기
     </button>
-    {#each messageLog.toReversed() as log}
-        <div style="margin-bottom: 10px;">
-            {log.message.content}
-        </div>
-    {/each}
+    <MessageLog/>
 </main>
 
 <style>
@@ -55,7 +52,7 @@
         }
 
         &[data-mode='normal'] {
-            background-color: #f1f9f7;
+            background-color: #e9f3f0;
         }
         &[data-mode='dark'] {
             background-color: #f6f0f9;

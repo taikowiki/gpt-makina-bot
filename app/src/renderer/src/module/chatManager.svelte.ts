@@ -10,7 +10,8 @@ class ChatManager {
         await this.loadMessageLog(roomId);
         this.messageLog[roomId].push({
             message: { role: 'user', content: message },
-            time: new Date()
+            time: new Date(),
+            mode: settingManager.mode
         });
 
         const [err, msg] = await window.api.sendMessage({
@@ -22,14 +23,16 @@ class ChatManager {
         if (err || !msg) {
             this.messageLog[roomId].push({
                 message: { role: 'assistant', content: null },
-                time: new Date()
+                time: new Date(),
+                mode: settingManager.mode
             });
             return null;
         }
         else {
             this.messageLog[roomId].push({
                 message: { role: 'assistant', content: msg },
-                time: new Date()
+                time: new Date(),
+                mode: settingManager.mode
             });
 
             return msg;

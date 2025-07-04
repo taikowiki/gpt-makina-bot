@@ -1,12 +1,11 @@
 import sqlite3 from 'sqlite3';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
-import OpenAI from 'openai';
 import { MessageData, Room } from '../types/chat.js';
 
 const { Database } = sqlite3;
 
-const dbDirPath = path.join(import.meta.dirname, 'db');
+const dbDirPath = path.join(process.resourcesPath, 'db');
 const dbPath = path.join(dbDirPath, 'main.db');
 if (!fs.existsSync(dbDirPath)) {
     fs.mkdirSync(dbDirPath, { recursive: true });
@@ -69,8 +68,8 @@ const DB = {
             }
         },
         msg: {
-            async insertMessage(roomId: string, message: OpenAI.ChatCompletionMessageParam, time: Date) {
-                await DB.run("INSERT INTO message (roomId, message, time) VALUES (?, ?, ?)", [roomId, JSON.stringify(message), time.getTime()]);
+            async insertMessage(roomId: string, messageData: MessageData) {
+                await DB.run("INSERT INTO message (roomId, message, time, mode) VALUES (?, ?, ?, ?)", [roomId, JSON.stringify(messageData.message), messageData.time.getTime(), messageData.mode]);
             },
             async getRecentMessages(roomId: string, limit: number = 10, offset: number = 0) {
                 const result = await DB.all("SELECT * FROM message WHERE roomId=? ORDER BY id DESC LIMIT ? OFFSET ? ", [roomId, limit, offset]) as any[];
@@ -81,7 +80,7 @@ const DB = {
                 return result as (MessageData & {roomId: string})[];
             },
             async getMessages(roomId: string) {
-                const result = await DB.all("SELECT * FROM message WHERE roomId=? ORDER BY id ASC", [roomId]) as any[];
+                const result = await DB.all("SELECT message, time, mode FROM message WHERE roomId=? ORDER BY id ASC", [roomId]) as any[];
                 result.forEach((v: any) => {
                     v.message = JSON.parse(v.message);
                     v.time = new Date(v.time);
@@ -97,7 +96,8 @@ const DB = {
                     id INTEGER PRIMARY KEY,
                     "roomId"	TEXT NOT NULL,
                     "message"	TEXT NOT NULL,
-                    "time"	INTEGER NOT NULL
+                    "time"	INTEGER NOT NULL,
+                    "mode"  TEXT NOT NULL
                 );`)
             }
         },

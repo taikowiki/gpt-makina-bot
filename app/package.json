@@ -1,5 +1,6 @@
 {
   "name": "makina-bot-gpt-app",
+  "productName": "Makina GPT",
   "version": "1.0.0",
   "description": "An Electron application with Svelte and TypeScript",
   "main": "./out/main/index.js",

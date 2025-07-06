@@ -4,14 +4,19 @@ import type { IPC } from "../../../types/ipc";
 class RoomManager {
     static async getInstance() {
         const roomManager = new RoomManager();
+
         const rooms = await window.api.getAllRooms();
         roomManager.roomIds.push(...rooms.map(e => e.roomId));
         rooms.forEach((room) => {
             roomManager.roomMap[room.roomId] = room;
         });
+
         if(rooms.length === 0){
             roomManager.newRoom();
         }
+
+        roomManager.setCurrentRoom(roomManager.roomIds[roomManager.roomIds.length - 1]);
+
         return roomManager;
     }
 

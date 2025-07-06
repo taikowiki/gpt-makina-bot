@@ -4,6 +4,7 @@ import type { MessageData } from "../../../types/chat";
 
 class ChatManager {
     messageLog: Record<string, MessageData[]> = $state({});
+    sendingState = $state<null | {mode: 'normal' | 'dark' | 'custom'}>(null);
 
     async sendMessage(message: string) {
         const roomId = roomManager.currentRoomId;
@@ -14,11 +15,17 @@ class ChatManager {
             mode: settingManager.mode
         });
 
+        this.sendingState = {
+            mode: settingManager.mode
+        }
+
         const [err, msg] = await window.api.sendMessage({
             roomId,
             message,
             mode: settingManager.mode
         });
+
+        this.sendingState = null;
 
         if (err || !msg) {
             this.messageLog[roomId].push({

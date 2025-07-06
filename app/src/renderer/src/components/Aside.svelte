@@ -13,22 +13,32 @@
     <div class="header">
         <button
             onclick={() => {
-                if(settingManager.mode === 'normal'){
+                if (settingManager.mode === 'normal') {
                     settingManager.setMode('dark')
-                }
-                else{
+                } else {
                     settingManager.setMode('normal')
                 }
             }}
         >
             토글
         </button>
+        <button
+            onclick={() => {
+                roomManager.newRoom()
+            }}
+        >
+            새 대화
+        </button>
     </div>
     <div class="rooms">
         {#each roomManager.roomIds.toReversed() as roomId}
-            <div class="room" role='presentation' onclick={() => {
-                roomManager.setCurrentRoom(roomId)
-            }}>
+            <div
+                class="room"
+                role="presentation"
+                onclick={() => {
+                    roomManager.setCurrentRoom(roomId)
+                }}
+            >
                 {roomManager.roomMap[roomId].subject}
             </div>
         {/each}
@@ -60,10 +70,10 @@
             width: 250px;
         }
 
-        &[data-mode="normal"]{
+        &[data-mode='normal'] {
             background-color: #a8d9d3;
         }
-        &[data-mode="dark"]{
+        &[data-mode='dark'] {
             background-color: #d5aad1;
         }
     }

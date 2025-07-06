@@ -5,12 +5,29 @@
     import makinaNormalIcon from '../../assets/img/makina-normal.webp'
     import makinaDarkIcon from '../../assets/img/makina-dark.webp'
     import { marked } from 'marked'
+    import { onMount } from 'svelte'
 
     let messageLog = $state<MessageData[]>([])
     $effect(() => {
         chatManager.getMessageLog(roomManager.currentRoomId).then((log) => {
             messageLog = log
         })
+    })
+
+    let container = $state<HTMLDivElement>()
+    onMount(() => {
+        const observer = new MutationObserver((entries) => {
+            entries.forEach((entry) => {
+                const lastChild = Array.from(entry.target.childNodes).at(-2) as
+                    | HTMLElement
+                    | undefined
+                if (lastChild && lastChild.nodeType !== Node.TEXT_NODE) {
+                    lastChild.scrollIntoView()
+                }
+            })
+        })
+
+        observer.observe(container, { childList: true })
     })
 
     function getMakinaIcon(mode: MessageData['mode']) {
@@ -34,6 +51,8 @@
                 {#if data.message.role === 'assistant'}
                     {#if data.message.content}
                         {@html marked.parse(data.message.content)}
+                    {:else}
+                        <span class={`err`}>🛈 오류가 발생했습니다.</span>
                     {/if}
                 {:else}
                     {data.message.content}
@@ -43,16 +62,23 @@
     </div>
 {/snippet}
 
-<div class="container">
+<div class="container" bind:this={container}>
     {#each messageLog as data}
         {@render messageView(data)}
     {/each}
+    {#if chatManager.sendingState}
+        {@render messageView({
+            message: { role: 'assistant', content: '...' },
+            mode: chatManager.sendingState.mode,
+            time: new Date()
+        })}
+    {/if}
 </div>
 
 <style>
     .container {
         width: 100%;
-        height: 100%;
+        height: calc(100% - 100px);
 
         display: flex;
         flex-direction: column;
@@ -110,16 +136,16 @@
                 margin-left: -14px;
             }
 
-            &.normal{
+            &.normal {
                 background-color: rgb(208, 235, 226);
-                &:after{
+                &:after {
                     border-right-color: rgb(208, 235, 226);
                 }
             }
 
-            &.dark{
+            &.dark {
                 background-color: #ebdef1;
-                &:after{
+                &:after {
                     border-right-color: #ebdef1;
                 }
             }
@@ -149,8 +175,16 @@
             margin: 0;
         }
 
-        & > div{
+        & > div {
             transform: translateY(-1px);
         }
+
+        & :global(img) {
+            max-width: 100%;
+        }
+    }
+
+    .err {
+        color: red;
     }
 </style>

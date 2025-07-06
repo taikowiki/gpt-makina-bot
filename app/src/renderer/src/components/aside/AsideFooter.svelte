@@ -8,6 +8,7 @@
     let customPrompt = $state(settingManager.customPrompt);
     let baseURL = $state(settingManager.baseURL);
     let apiKey = $state('');
+    let model = $state(settingManager.model);
 
     onMount(() => {
         if (!dialog) return
@@ -27,11 +28,11 @@
 
     async function save(){
         settingManager.setMode(mode);
+        await settingManager.setModel(model);
         await settingManager.setBaseURL(baseURL);
         if(apiKey){
             await settingManager.setApiKey(apiKey);
         }
-
         dialog.close();
     }
 </script>
@@ -69,6 +70,20 @@
                         <textarea bind:value={customPrompt}></textarea>
                     </div>
                 {/if}
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-title">
+                모델
+            </div>
+            <div class="section-content">
+                <select bind:value={model}>
+                    <option value="gpt-4o">gpt-4o</option>
+                    <option value="gpt-4o-mini">gpt-4o-mini</option>
+                    <option value="gpt-4.1">gpt-4.1</option>
+                    <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+                    <option value="gpt-4.1-nano">gpt-4.1-nano</option>
+                </select>
             </div>
         </div>
         <div class="section">

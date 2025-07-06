@@ -27,7 +27,10 @@ const api: IPC.FrontAPI = {
   },
   deleteRoom(roomId){
     return electronAPI.ipcRenderer.invoke('deleteRoom', roomId);
-  }
+  },
+  setModel(model) {
+    return electronAPI.ipcRenderer.invoke('setModel', model);
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

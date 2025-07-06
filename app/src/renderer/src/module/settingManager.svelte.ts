@@ -1,8 +1,11 @@
+import type { ChatModel } from "openai/resources";
+
 class SettingManager{
     mode: 'normal' | 'dark' | 'custom' = $state('normal');
     customPrompt = $state('');
     baseURL = $state('');
     isApiKeySet = $state(false);
+    model: ChatModel = $state('gpt-4o-mini')
 
     setMode(mode: 'normal' | 'dark' | 'custom'){
         this.mode = mode;
@@ -28,6 +31,14 @@ class SettingManager{
         const result = await window.api.setApiKey(apiKey);
         if(result){
             this.isApiKeySet = true;
+        }
+        return result;
+    }
+
+    async setModel(model: ChatModel){
+        const result = await window.api.setModel(model);
+        if(result){
+            this.model = model;
         }
         return result;
     }

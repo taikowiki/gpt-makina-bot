@@ -10,6 +10,7 @@
     settingManager.customPrompt = initialData.customPrompt;
     settingManager.baseURL = initialData.baseURL;
     settingManager.isApiKeySet = initialData.isApiKeySet;
+    settingManager.model = initialData.model;
 </script>
 
 <div

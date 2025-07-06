@@ -24,7 +24,7 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
-    "@taiko-wiki/manika-bot-gpt": "^0.0.11",
+    "@taiko-wiki/manika-bot-gpt": "^0.0.12",
     "electron-updater": "^6.3.9",
     "marked": "^16.0.0",
     "openai": "^5.8.2",

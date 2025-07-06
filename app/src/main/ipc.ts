@@ -3,11 +3,13 @@ import { DB } from "./db.js";
 import { MakinaGPT } from '@taiko-wiki/manika-bot-gpt';
 import { normalPrompt, darkPrompt } from '@taiko-wiki/manika-bot-gpt/devPrompt';
 import type { IPC } from '../types/ipc.js';
+import { ChatModel } from "openai/resources";
 
 const initialData = {
     isApiKeySet: false,
     customPrompt: '',
-    baseURL: 'https://api.openai.com/v1'
+    baseURL: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini'
 }
 let makina = await createMakinaInstance();
 
@@ -112,22 +114,33 @@ export function enableIpc(ipcMain: IpcMain, mainWindow: BrowserWindow) {
         return await DB.func.msg.getMessages(roomId);
     })
 
-    ipcMain.handle('setCustomPrompt', async(_, prompt: string) => {
-        try{
+    ipcMain.handle('setCustomPrompt', async (_, prompt: string) => {
+        try {
             await DB.func.setting.set('customPrompt', prompt);
             return true;
         }
-        catch{
+        catch {
             return false;
         }
     })
-    
-    ipcMain.handle('deleteRoom', async(_, roomId) => {
-        try{
+
+    ipcMain.handle('deleteRoom', async (_, roomId) => {
+        try {
             await DB.func.room.deleteRoom(roomId);
             return true;
         }
-        catch{
+        catch {
+            return false;
+        }
+    })
+
+    ipcMain.handle('setModel', async (_, model: ChatModel) => {
+        try {
+            await DB.func.setting.set('model', model);
+            makina.setModel(model);
+            return true;
+        }
+        catch {
             return false;
         }
     })
@@ -160,15 +173,22 @@ async function createMakinaInstance() {
             makina.custom.client.baseURL = baseURL;
             initialData.baseURL = baseURL;
         },
-        setCustomPrompt(prompt: string){
+        setCustomPrompt(prompt: string) {
             makina.custom.developerMessages = [prompt];
             initialData.customPrompt = prompt;
+        },
+        setModel(model: ChatModel) {
+            makina.normal.model = model;
+            makina.dark.model = model;
+            makina.custom.model = model;
+            initialData.model = model;
         }
     }
 
     let apiKey = await DB.func.setting.get('apiKey');
     let baseURL = await DB.func.setting.get('baseURL');
     let customPrompt = await DB.func.setting.get('customPrompt');
+    let model = await DB.func.setting.get('model');
 
     if (apiKey) {
         makina.setApiKey(apiKey);
@@ -176,8 +196,11 @@ async function createMakinaInstance() {
     if (baseURL) {
         makina.setBaseURL(baseURL);
     };
-    if(customPrompt){
+    if (customPrompt) {
         makina.setCustomPrompt(customPrompt);
+    }
+    if (model) {
+        makina.setModel(model as ChatModel);
     }
 
     return makina;

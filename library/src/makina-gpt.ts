@@ -2,12 +2,14 @@ import { TaikowikiApi } from '@taiko-wiki/taikowiki-api';
 export const GENRE = ["pops", "anime", "kids", "game", "variety", "namco", "vocaloid", "classic"] as const;
 type Genre = typeof GENRE[number];
 import OpenAI from 'openai';
+import { ChatModel } from 'openai/resources';
 
 const wiki = new TaikowikiApi();
 
 export class MakinaGPT {
     client: OpenAI;
     developerMessages: string[] = MakinaGPT.developerMessages;
+    model: ChatModel = 'gpt-4o-mini'
 
     constructor(option: MakinaGPT.ConstrcutorOption) {
         if (option.url) {
@@ -32,7 +34,7 @@ export class MakinaGPT {
     async request(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]) {
         try {
             return await this.client.chat.completions.create({
-                model: 'gpt-4o',
+                model: this.model,
                 messages: [
                     ...this.developerMessages.map((e) => ({
                         role: 'developer' as const,

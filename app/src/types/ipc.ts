@@ -1,3 +1,4 @@
+import { ChatModel } from "openai/resources";
 import { MessageData, Room } from "./chat.js";
 
 export namespace IPC{
@@ -26,6 +27,7 @@ export namespace IPC{
             isApiKeySet: boolean;
             customPrompt: string;
             baseURL: string;
+            model: ChatModel
         },
         setApiKey: (apiKey: string) => Promise<boolean>,
         setBaseURL: (baseURL: string) => Promise<boolean>,
@@ -34,5 +36,6 @@ export namespace IPC{
         getMessages: (roomId: string) => Promise<MessageData[]>;
         setCustomPrompt: (prompt: string) => Promise<boolean>;
         deleteRoom: (roomId: string) => Promise<boolean>;
+        setModel: (model: ChatModel) => Promise<boolean>;
     };
 }

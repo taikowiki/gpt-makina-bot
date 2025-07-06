@@ -7,6 +7,10 @@
   "author": "example.com",
   "homepage": "https://electron-vite.org",
   "type": "module",
+  "build":{
+    "productName": "Makina GPT",
+    "icon": "build/icon"
+  },
   "scripts": {
     "format": "prettier --plugin prettier-plugin-svelte --write .",
     "lint": "eslint --cache .",

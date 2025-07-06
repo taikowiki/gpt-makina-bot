@@ -45,7 +45,7 @@ export function enableIpc(ipcMain: IpcMain, mainWindow: BrowserWindow) {
             const requestTime = new Date();
             if (!(await DB.func.room.checkRoom(roomId))) {
                 const subject = await makina[mode].request([
-                    { role: 'developer', content: '유저가 주는 메시지로 시작하는 대화의 주제를 파악하여 간결하게 요약하라. 명사형으로 끝내라.' },
+                    { role: (makina[mode].model.startsWith('gpt-4') ? 'developer' : 'system'), content: '유저가 주는 메시지로 시작하는 대화의 주제를 파악하여 간결하게 요약하라. 명사형으로 끝내라.' },
                     { role: 'user', content: message }
                 ]).then((res) => res.choices?.[0]?.message?.content ?? '제목 없음');
                 await DB.func.room.createRoom(roomId, subject);

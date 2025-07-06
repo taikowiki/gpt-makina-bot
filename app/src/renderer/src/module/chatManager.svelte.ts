@@ -27,6 +27,10 @@ class ChatManager {
 
         this.sendingState = null;
 
+        if(err){
+            console.log(err);
+        }
+
         if (err || !msg) {
             this.messageLog[roomId].push({
                 message: { role: 'assistant', content: null },

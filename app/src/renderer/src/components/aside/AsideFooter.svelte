@@ -1,14 +1,25 @@
 <script lang="ts">
     import { onMount } from 'svelte'
     import { settingManager } from '../../module/settingManager.svelte'
+    import type { ChatModel } from 'openai/resources'
 
-    let dialog = $state<HTMLDialogElement>();
+    let dialog = $state<HTMLDialogElement>()
 
-    let mode = $state(settingManager.mode);
-    let customPrompt = $state(settingManager.customPrompt);
-    let baseURL = $state(settingManager.baseURL);
-    let apiKey = $state('');
-    let model = $state(settingManager.model);
+    const models = ['gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano']
+
+    let mode = $state(settingManager.mode)
+    let customPrompt = $state(settingManager.customPrompt)
+    let baseURL = $state(settingManager.baseURL)
+    let apiKey = $state('')
+    let model = $state(settingManager.model)
+    let modelSelectValue = $state(
+        models.includes(settingManager.model) ? settingManager.model : 'custom'
+    )
+    $effect(() => {
+        if(models.includes(modelSelectValue)){
+            model = modelSelectValue as ChatModel;
+        }
+    })
 
     onMount(() => {
         if (!dialog) return
@@ -26,15 +37,15 @@
         })
     })
 
-    async function save(){
-        settingManager.setMode(mode);
-        await settingManager.setModel(model);
-        await settingManager.setBaseURL(baseURL);
-        if(apiKey){
-            await settingManager.setApiKey(apiKey);
-            apiKey = '';
+    async function save() {
+        settingManager.setMode(mode)
+        await settingManager.setModel(model)
+        await settingManager.setBaseURL(baseURL)
+        if (apiKey) {
+            await settingManager.setApiKey(apiKey)
+            apiKey = ''
         }
-        dialog.close();
+        dialog.close()
     }
 </script>
 
@@ -50,23 +61,21 @@
 <dialog bind:this={dialog}>
     <div>
         <div class="section">
-            <div class="section-title">
-                모드
-            </div>
+            <div class="section-title">모드</div>
             <div class="section-content">
                 <label>
-                    <input type="radio" value="normal" bind:group={mode}>
+                    <input type="radio" value="normal" bind:group={mode} />
                     마키나
                 </label>
                 <label>
-                    <input type="radio" value="dark" bind:group={mode}>
+                    <input type="radio" value="dark" bind:group={mode} />
                     마키나 the DARK
                 </label>
                 <label>
-                    <input type="radio" value="custom" bind:group={mode}>
+                    <input type="radio" value="custom" bind:group={mode} />
                     커스텀
                 </label>
-                {#if mode==='custom'}
+                {#if mode === 'custom'}
                     <div>
                         <textarea bind:value={customPrompt}></textarea>
                     </div>
@@ -74,38 +83,34 @@
             </div>
         </div>
         <div class="section">
-            <div class="section-title">
-                모델
-            </div>
+            <div class="section-title">모델</div>
             <div class="section-content">
-                <select bind:value={model}>
-                    <option value="gpt-4o">gpt-4o</option>
-                    <option value="gpt-4o-mini">gpt-4o-mini</option>
-                    <option value="gpt-4.1">gpt-4.1</option>
-                    <option value="gpt-4.1-mini">gpt-4.1-mini</option>
-                    <option value="gpt-4.1-nano">gpt-4.1-nano</option>
+                <select bind:value={modelSelectValue}>
+                    {#each models as model}
+                        <option value={model}>{model}</option>
+                    {/each}
+                    <option value="custom">기타</option>
                 </select>
+                {#if modelSelectValue === 'custom'}
+                    <div style="margin-top: 3px">
+                        <input type="text" bind:value={model} />
+                    </div>
+                {/if}
             </div>
         </div>
         <div class="section">
-            <div class="section-title">
-                Base URL
-            </div>
+            <div class="section-title">Base URL</div>
             <div class="section-content">
-                <input type="text" bind:value={baseURL}/>
+                <input type="text" bind:value={baseURL} />
             </div>
         </div>
         <div class="section">
-            <div class="section-title">
-                Api Key
-            </div>
+            <div class="section-title">Api Key</div>
             <div class="section-content">
-                <input type="text" bind:value={apiKey}/>
+                <input type="text" bind:value={apiKey} />
             </div>
         </div>
-        <button onclick={save}>
-            저장
-        </button>
+        <button onclick={save}> 저장 </button>
     </div>
 </dialog>
 
@@ -132,17 +137,17 @@
         font-weight: bold;
     }
 
-    dialog{
+    dialog {
         border: 2px solid black;
         border-radius: 10px;
 
         max-width: 400px;
 
-        & > div{
+        & > div {
             width: 100%;
             height: 100%;
 
-            display:flex;
+            display: flex;
             flex-direction: column;
             align-items: center;
 
@@ -150,22 +155,22 @@
         }
     }
 
-    .section{
+    .section {
         width: 100%;
     }
 
-    .section-title{
+    .section-title {
         width: 100%;
         font-weight: bold;
         font-size: 20px;
     }
 
-    textarea{
+    textarea {
         width: 100%;
-        resize:vertical
+        resize: vertical;
     }
 
-    input[type="text"]{
+    input[type='text'] {
         width: 100%;
         height: 25px;
     }

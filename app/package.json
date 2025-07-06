@@ -1,13 +1,13 @@
 {
   "name": "makina-bot-gpt-app",
   "productName": "Makina GPT",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An Electron application with Svelte and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://electron-vite.org",
   "type": "module",
-  "build":{
+  "build": {
     "productName": "Makina GPT",
     "icon": "build/icon"
   },
@@ -29,7 +29,7 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
-    "@taiko-wiki/manika-bot-gpt": "^0.0.12",
+    "@taiko-wiki/manika-bot-gpt": "^0.0.13",
     "electron-updater": "^6.3.9",
     "marked": "^16.0.0",
     "openai": "^5.8.2",

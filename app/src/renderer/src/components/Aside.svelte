@@ -1,8 +1,10 @@
 <script lang="ts">
     import { asideManager } from '../module/asideManager.svelte'
     import { browserState } from '../module/browserState.svelte'
-    import { roomManager } from '../module/roomManager.svelte'
     import { settingManager } from '../module/settingManager.svelte'
+    import AsideFooter from './aside/AsideFooter.svelte'
+    import AsideHeader from './aside/AsideHeader.svelte'
+    import RoomList from './aside/RoomList.svelte'
 </script>
 
 <aside
@@ -10,39 +12,9 @@
     class:isMobile={browserState.isMobile}
     data-mode={settingManager.mode}
 >
-    <div class="header">
-        <button
-            onclick={() => {
-                if (settingManager.mode === 'normal') {
-                    settingManager.setMode('dark')
-                } else {
-                    settingManager.setMode('normal')
-                }
-            }}
-        >
-            토글
-        </button>
-        <button
-            onclick={() => {
-                roomManager.newRoom()
-            }}
-        >
-            새 대화
-        </button>
-    </div>
-    <div class="rooms">
-        {#each roomManager.roomIds.toReversed() as roomId}
-            <div
-                class="room"
-                role="presentation"
-                onclick={() => {
-                    roomManager.setCurrentRoom(roomId)
-                }}
-            >
-                {roomManager.roomMap[roomId].subject}
-            </div>
-        {/each}
-    </div>
+    <AsideHeader />
+    <RoomList />
+    <AsideFooter />
 </aside>
 
 <style>
@@ -58,6 +30,8 @@
             top: 0;
 
             transition: transform 0.2s;
+
+            z-index: 5;
 
             &.opened {
                 left: 0;

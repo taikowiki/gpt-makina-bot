@@ -9,7 +9,8 @@
 
     let messageLog = $state<MessageData[]>([])
     $effect(() => {
-        chatManager.getMessageLog(roomManager.currentRoomId).then((log) => {
+        chatManager.getMessageLog(roomManager.currentRoomId)
+        .then((log) => {
             messageLog = log
         })
     })
@@ -18,9 +19,9 @@
     onMount(() => {
         const observer = new MutationObserver((entries) => {
             entries.forEach((entry) => {
-                const lastChild = Array.from(entry.target.childNodes).at(-2) as
+                const lastChild = Array.from((entry.target as HTMLElement).querySelectorAll('.message')).at(-1) as
                     | HTMLElement
-                    | undefined
+                    | undefined;
                 if (lastChild && lastChild.nodeType !== Node.TEXT_NODE) {
                     lastChild.scrollIntoView()
                 }
@@ -88,7 +89,7 @@
 
         box-sizing: border-box;
         padding-inline: 15px;
-        padding-bottom: 50px;
+        padding-bottom: 30px;
     }
 
     .message {

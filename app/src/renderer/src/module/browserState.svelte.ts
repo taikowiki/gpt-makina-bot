@@ -1,15 +1,24 @@
-class BrowserState{
+import { asideManager } from "./asideManager.svelte";
+
+class BrowserState {
     isMobile = $state(false);
 
-    constructor(){
+    constructor() {
+        this.setIsMobile();
         window.addEventListener('resize', () => {
-            if(window.innerWidth < 600){
-                this.isMobile = true;
-            }
-            else{
-                this.isMobile = false;
-            }
+            this.setIsMobile();
         })
+    }
+
+    private setIsMobile() {
+        if (window.innerWidth < 600) {
+            this.isMobile = true;
+            asideManager.isOpened = false;
+        }
+        else {
+            this.isMobile = false;
+            asideManager.isOpened = true;
+        }
     }
 }
 

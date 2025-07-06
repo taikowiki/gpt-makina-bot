@@ -56,6 +56,24 @@ class RoomManager {
 
         return roomId;
     }
+
+    public async deleteRoom(roomId: string){
+        const result = await window.api.deleteRoom(roomId);
+        if(!result){
+            return result;
+        }
+
+        this.roomIds = this.roomIds.filter((e) => e !== roomId);
+        if(this.roomIds.length === 0){
+            this.newRoom();
+        }
+
+        if(this.currentRoomId = roomId){
+            this.currentRoomId = this.roomIds[this.roomIds.length - 1];
+        }
+
+        return result;
+    }
 }
 
 export const roomManager = await RoomManager.getInstance();

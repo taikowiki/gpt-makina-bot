@@ -7,9 +7,9 @@
     import { settingManager } from './module/settingManager.svelte'
 
     const initialData = window.api.ready();
-    let isApiKeySet = $state(initialData.isApiKeySet);
-
-    window.api.setBaseURL("https://factchat-cloud.mindlogic.ai/v1/api/openai");
+    settingManager.customPrompt = initialData.customPrompt;
+    settingManager.baseURL = initialData.baseURL;
+    settingManager.isApiKeySet = initialData.isApiKeySet;
 </script>
 
 <div
@@ -18,8 +18,8 @@
     class:isMobile={browserState.isMobile}
     data-mode={settingManager.mode}
 >
-    {#if !isApiKeySet}
-        <ApiKeyModal bind:isApiKeySet />
+    {#if !settingManager.isApiKeySet}
+        <ApiKeyModal />
     {/if}
     <Aside />
     <Main />

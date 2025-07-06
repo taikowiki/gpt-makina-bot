@@ -4,14 +4,16 @@ import { MakinaGPT } from '@taiko-wiki/manika-bot-gpt';
 import { normalPrompt, darkPrompt } from '@taiko-wiki/manika-bot-gpt/devPrompt';
 import type { IPC } from '../types/ipc.js';
 
-let isApiKeySet = false;
+const initialData = {
+    isApiKeySet: false,
+    customPrompt: '',
+    baseURL: 'https://api.openai.com/v1'
+}
 let makina = await createMakinaInstance();
 
 export function enableIpc(ipcMain: IpcMain, mainWindow: BrowserWindow) {
     ipcMain.on('ready', (event) => {
-        event.returnValue = {
-            isApiKeySet
-        }
+        event.returnValue = initialData;
     })
 
     ipcMain.handle('setApiKey', async (_, apiKey: IPC.ToBack['setApiKey']) => {
@@ -109,6 +111,26 @@ export function enableIpc(ipcMain: IpcMain, mainWindow: BrowserWindow) {
     ipcMain.handle('getMessages', async (_, roomId: string) => {
         return await DB.func.msg.getMessages(roomId);
     })
+
+    ipcMain.handle('setCustomPrompt', async(_, prompt: string) => {
+        try{
+            await DB.func.setting.set('customPrompt', prompt);
+            return true;
+        }
+        catch{
+            return false;
+        }
+    })
+    
+    ipcMain.handle('deleteRoom', async(_, roomId) => {
+        try{
+            await DB.func.room.deleteRoom(roomId);
+            return true;
+        }
+        catch{
+            return false;
+        }
+    })
 }
 
 async function createMakinaInstance() {
@@ -129,18 +151,24 @@ async function createMakinaInstance() {
             makina.dark.client.apiKey = apiKey;
             makina.custom.client.apiKey = apiKey;
             if (apiKey) {
-                isApiKeySet = true;
+                initialData.isApiKeySet = true;
             }
         },
         setBaseURL(baseURL: string) {
             makina.normal.client.baseURL = baseURL;
             makina.dark.client.baseURL = baseURL;
             makina.custom.client.baseURL = baseURL;
+            initialData.baseURL = baseURL;
+        },
+        setCustomPrompt(prompt: string){
+            makina.custom.developerMessages = [prompt];
+            initialData.customPrompt = prompt;
         }
     }
 
     let apiKey = await DB.func.setting.get('apiKey');
     let baseURL = await DB.func.setting.get('baseURL');
+    let customPrompt = await DB.func.setting.get('customPrompt');
 
     if (apiKey) {
         makina.setApiKey(apiKey);
@@ -148,6 +176,9 @@ async function createMakinaInstance() {
     if (baseURL) {
         makina.setBaseURL(baseURL);
     };
+    if(customPrompt){
+        makina.setCustomPrompt(customPrompt);
+    }
 
     return makina;
 }

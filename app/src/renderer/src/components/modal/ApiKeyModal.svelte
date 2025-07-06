@@ -1,11 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte'
-
-    interface Props {
-        isApiKeySet: boolean
-    }
-
-    let { isApiKeySet = $bindable() }: Props = $props()
+    import { settingManager } from '../../module/settingManager.svelte'
 
     let dialog = $state<HTMLDialogElement>()
     let apiKeyInputValue = $state("");
@@ -21,12 +16,9 @@
             return;
         };
 
-        const result = await window.api.setApiKey(apiKeyInputValue);
+        const result = await settingManager.setApiKey(apiKeyInputValue);
 
-        if(result){
-            isApiKeySet = true;
-        }
-        else{
+        if(!result){
             errorMsg = "오류가 발생했습니다.";
             return;
         }

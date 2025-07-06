@@ -120,6 +120,9 @@ const DB = {
                 const result = await DB.all("SELECT roomId, subject FROM room");
                 return result ?? [] as Room[];
             },
+            async deleteRoom(roomId: string){
+                await DB.run("DELETE FROM room WHERE roomId=?", [roomId]);
+            },
             async check() {
                 const result = await DB.get("SELECT name FROM sqlite_master WHERE type='table' AND name='room'");
                 return Boolean(result);

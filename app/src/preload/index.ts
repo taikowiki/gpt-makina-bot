@@ -22,6 +22,12 @@ const api: IPC.FrontAPI = {
   getMessages(roomId) {
     return electronAPI.ipcRenderer.invoke('getMessages', roomId);
   },
+  setCustomPrompt(prompt) {
+    return electronAPI.ipcRenderer.invoke('setCustomPrompt', prompt);
+  },
+  deleteRoom(roomId){
+    return electronAPI.ipcRenderer.invoke('deleteRoom', roomId);
+  }
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

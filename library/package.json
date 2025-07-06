@@ -1,6 +1,6 @@
 {
   "name": "@taiko-wiki/manika-bot-gpt",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Makina bot using GPT for Taiko no Tatsujin",
   "license": "MIT",
   "author": "hotsixman",

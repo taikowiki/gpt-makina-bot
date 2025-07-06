@@ -37,7 +37,7 @@ export class MakinaGPT {
                 model: this.model,
                 messages: [
                     ...this.developerMessages.map((e) => ({
-                        role: 'developer' as const,
+                        role: (this.model.startsWith('gpt-4') ? 'developer' : 'system') as any,
                         content: e
                     })),
                     ...messages

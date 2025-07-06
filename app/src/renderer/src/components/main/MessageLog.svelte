@@ -69,7 +69,7 @@
     {/each}
     {#if chatManager.sendingState}
         {@render messageView({
-            message: { role: 'assistant', content: '...' },
+            message: { role: 'assistant', content: '(생각중입니다...)' },
             mode: chatManager.sendingState.mode,
             time: new Date()
         })}

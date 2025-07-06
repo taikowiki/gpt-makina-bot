@@ -32,6 +32,7 @@
         await settingManager.setBaseURL(baseURL);
         if(apiKey){
             await settingManager.setApiKey(apiKey);
+            apiKey = '';
         }
         dialog.close();
     }

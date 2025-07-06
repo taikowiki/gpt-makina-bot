@@ -14,7 +14,9 @@ function createWindow() {
     ...(process.platform === 'linux' ? { icon } : {icon}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
-      sandbox: false
+      sandbox: false,
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
 
@@ -34,6 +36,22 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    const isExternal = !url.startsWith('file://');
+    if(isExternal){
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const isExternal = !url.startsWith('file://');
+    if (isExternal) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
 
   return mainWindow;
 }

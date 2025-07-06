@@ -32,6 +32,7 @@ class SettingManager{
         if(result){
             this.isApiKeySet = true;
         }
+        console.log(result);
         return result;
     }
 
